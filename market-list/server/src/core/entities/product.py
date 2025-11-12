@@ -19,3 +19,10 @@ class Product:
     def add_comment(self, comment: Comment) -> None:
         """Attach a comment to this product."""
         self.comentarios.append(comment)
+
+    def set_price(self, new_price: float) -> None:
+        if new_price is None:
+            raise ValueError("price cannot be None")
+        if new_price < 0:
+            raise ValueError("price cannot be negative")
+        self.price = new_price.quantize(float("0.01"))

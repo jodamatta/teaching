@@ -9,6 +9,7 @@ from src.app.schemas import (
     ProdutoDelSchema,
     ProdutoSchema,
     ProdutoViewSchema,
+    PriceUpdateSchema,
     apresenta_produto,
     apresenta_produtos,
 )
@@ -17,6 +18,8 @@ from src.core.use_cases.add_product import AddProductUseCase
 from src.core.use_cases.delete_product import DeleteProductUseCase
 from src.core.use_cases.get_product import GetProductUseCase
 from src.core.use_cases.list_products import ListProductsUseCase
+from src.core.use_cases.update_price import UpdateProductPriceUseCase   # ⬅️ importar
+
 
 produto_tag = Tag(
     name="Produto",
@@ -30,6 +33,7 @@ def register_product_routes(
     list_use_case: ListProductsUseCase,
     get_use_case: GetProductUseCase,
     delete_use_case: DeleteProductUseCase,
+    update_price_use_case: UpdateProductPriceUseCase,
 ) -> None:
     @app.post(
         "/produto",
@@ -86,3 +90,17 @@ def register_product_routes(
             return {"mesage": "Produto removido", "nome": nome}, 200
         except ProductNotFound as error:
             return {"mesage": str(error)}, 404
+        
+    @app.put(
+        "/produto/preco",
+        tags=[produto_tag],
+        responses={"200": ProdutoViewSchema, "404": ErrorSchema, "422": ErrorSchema},
+    )
+    def update_preco(query: ProdutoBuscaSchema, body: PriceUpdateSchema):  # <-- body, not form
+        try:
+            produto = update_price_use_case.execute(query.id, body.valor)   # <-- body.valor
+            return apresenta_produto(produto), 200
+        except ProductNotFound as error:
+            return {"mesage": str(error)}, 404
+        except ValueError as error:
+            return {"mesage": str(error)}, 422

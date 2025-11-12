@@ -6,18 +6,16 @@
   --------------------------------------------------------------------------------------
 */
 const getList = async () => {
-  let url = 'http://127.0.0.1:5000/produtos';
-  fetch(url, {
-    method: 'get',
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      data.produtos.forEach(item => insertList(item.nome, item.quantidade, item.valor))
+  const url = (window.API_BASE || 'http://127.0.0.1:5000') + '/produtos';
+  fetch(url, { method: 'get' })
+    .then(r => r.json())
+    .then(data => {
+      data.produtos.forEach(item =>
+        insertList(item.id, item.nome, item.quantidade, item.valor)
+      );
     })
-    .catch((error) => {
-      console.error('Error:', error);
-    });
-}
+    .catch(() => alert('Falha ao carregar a lista.'));
+};
 
 /*
   --------------------------------------------------------------------------------------
@@ -39,15 +37,10 @@ const postItem = async (inputProduct, inputQuantity, inputPrice) => {
   formData.append('valor', inputPrice);
 
   let url = 'http://127.0.0.1:5000/produto';
-  fetch(url, {
-    method: 'post',
-    body: formData
-  })
-    .then((response) => response.json())
-    .catch((error) => {
-      console.error('Error:', error);
-    });
-}
+  return fetch(url, { method: 'post', body: formData })
+    .then((response) => response.json());
+};
+
 
 // Criar config.py
 
@@ -110,7 +103,7 @@ const deleteItem = (item) => {
   Função para adicionar um novo item com nome, quantidade e valor 
   --------------------------------------------------------------------------------------
 */
-const newItem = () => {
+const newItem = async () => {
   let inputProduct = document.getElementById("newInput").value;
   let inputQuantity = document.getElementById("newQuantity").value;
   let inputPrice = document.getElementById("newPrice").value;
@@ -120,9 +113,9 @@ const newItem = () => {
   } else if (isNaN(inputQuantity) || isNaN(inputPrice)) {
     alert("Quantidade e valor precisam ser números!");
   } else {
-    insertList(inputProduct, inputQuantity, inputPrice)
-    postItem(inputProduct, inputQuantity, inputPrice)
-    alert("Item adicionado!")
+    const created = await postItem(inputProduct, inputQuantity, inputPrice);
+    insertList(created.id, created.nome, created.quantidade, created.valor);
+    alert("Item adicionado!");
   }
 }
 
@@ -131,7 +124,7 @@ const newItem = () => {
   Função para inserir items na lista apresentada
   --------------------------------------------------------------------------------------
 */
-const insertList = (nameProduct, quantity, price) => {
+const insertList = (id, nameProduct, quantity, price) => {
   var item = [nameProduct, quantity, price]
   var table = document.getElementById('myTable');
   var row = table.insertRow();
@@ -140,6 +133,7 @@ const insertList = (nameProduct, quantity, price) => {
     var cel = row.insertCell(i);
     cel.textContent = item[i];
   }
+  insertEditButton(row.insertCell(-1), id);
   insertButton(row.insertCell(-1))
   document.getElementById("newInput").value = "";
   document.getElementById("newQuantity").value = "";
@@ -147,3 +141,48 @@ const insertList = (nameProduct, quantity, price) => {
 
   removeElement()
 }
+
+const updatePrice = async (id, novoValor) => {
+  const url = (window.API_BASE || 'http://127.0.0.1:5000') + `/produto/preco?id=${id}`;
+  const r = await fetch(url, {
+    method: 'put',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ valor: Number(novoValor) })
+  });
+  if (!r.ok) {
+    const body = await r.json().catch(() => ({}));
+    throw new Error(body.mesage || 'Falha ao atualizar preço');
+  }
+  return r.json();
+};
+
+const insertEditButton = (parentCell, productId) => {
+  const btn = document.createElement("button");
+  btn.className = "edit";
+  btn.textContent = "Editar";
+  btn.onclick = async function () {
+    const row = parentCell.parentElement;
+    const priceCell = row.getElementsByTagName('td')[2];
+    const current = priceCell.textContent;
+    const input = prompt("Novo preço:", current);
+    const id = productId ?? row.dataset.id;
+    if (input === null) return;
+    if (isNaN(input) || Number(input) < 0) {
+      alert("O preço precisa ser um número >= 0!");
+      return;
+    }
+    try {
+      const updated = await fetch(`${API_BASE}/produto/preco?id=${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ valor: Number(input) })
+      });
+      priceCell.textContent = Number(updated.valor ?? input).toFixed(2);
+      alert("Preço atualizado!");
+    } catch (e) {
+      alert(e.message);
+    }
+  };
+  parentCell.appendChild(btn);
+};
+

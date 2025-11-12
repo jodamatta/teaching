@@ -8,6 +8,7 @@ from src.app.dependencies import (
     get_get_product_use_case,
     get_health_check_use_case,
     get_list_products_use_case,
+    get_update_product_price_use_case,
 )
 from src.app.routes import (
     register_comment_routes,
@@ -16,6 +17,9 @@ from src.app.routes import (
     register_product_routes,
 )
 from src.infra.logging import configure_logging
+from src.core.use_cases.update_price import UpdateProductPriceUseCase
+from src.infra.repositories.sqlalchemy_product_repository import SqlAlchemyProductRepository
+from src.infra.db.session import session_scope
 
 config_service = get_env_config_service()
 
@@ -37,11 +41,16 @@ def create_app() -> OpenAPI:
         list_use_case=get_list_products_use_case(),
         get_use_case=get_get_product_use_case(),
         delete_use_case=get_delete_product_use_case(),
+        update_price_use_case=get_update_product_price_use_case(),
     )
     register_comment_routes(application, get_add_comment_use_case())
     register_health_routes(application, get_health_check_use_case())
 
     return application
+
+def get_update_product_price_use_case() -> UpdateProductPriceUseCase:
+    repo = SqlAlchemyProductRepository(session_factory=session_scope)
+    return UpdateProductPriceUseCase(repo)
 
 
 app = create_app()

@@ -115,3 +115,33 @@ class SqlAlchemyProductRepository(ProductRepository):
             raise
         finally:
             session.close()
+
+    def update_price(self, product_id: int, novo_valor: float) -> Optional[Product]:
+        """Atualiza somente o campo 'valor' de um produto."""
+        with self._session_factory() as session:
+            try:
+                model = (
+                    session.query(ProductModel)
+                    .filter(ProductModel.id == product_id)
+                    .first()
+                )
+                if not model:
+                    return None
+
+                if novo_valor is None or novo_valor < 0:
+                    raise ValueError("valor deve ser >= 0")
+
+                model.valor = round(float(novo_valor), 2)
+
+                session.add(model)
+                session.commit()
+                session.refresh(model)
+                session.refresh(model, attribute_names=["comentarios"])
+                return product_mapper.to_domain(model)
+            except IntegrityError:
+                session.rollback()
+                raise
+            except Exception:
+                session.rollback()
+                raise
+            

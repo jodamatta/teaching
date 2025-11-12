@@ -7,6 +7,7 @@ from src.core.use_cases.delete_product import DeleteProductUseCase
 from src.core.use_cases.get_product import GetProductUseCase
 from src.core.use_cases.health_check import HealthCheckUseCase
 from src.core.use_cases.list_products import ListProductsUseCase
+from src.core.use_cases.update_price import UpdateProductPriceUseCase
 from src.infra.db import SessionLocal
 from src.infra.repositories import SqlAlchemyProductRepository
 
@@ -53,3 +54,7 @@ def get_health_check_use_case() -> HealthCheckUseCase:
         service_name_provider=config_service.get_service_name,
         service_version_provider=config_service.get_service_version,
     )
+
+@lru_cache
+def get_update_product_price_use_case():
+    return UpdateProductPriceUseCase(get_product_repository)

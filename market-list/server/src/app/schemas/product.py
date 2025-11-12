@@ -48,6 +48,11 @@ class ProdutoDelSchema(BaseModel):
     mesage: str
     nome: str
 
+class PriceUpdateSchema(BaseModel):
+    """Payload esperado para atualização do preço de um produto."""
+
+    valor: float
+
 
 def apresenta_produto(produto: Product) -> dict:
     """Converte a entidade de domínio para resposta JSON."""

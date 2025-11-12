@@ -132,3 +132,14 @@ tr:hover {
     background: rgb(200, 199, 199);
 }
 
+.edit {
+  padding: 6px 10px;
+  background-color: #2364aa;
+  color: white;
+  border: none;
+  border-radius: 2px;
+  cursor: pointer;
+}
+.edit:hover { opacity: 0.9; }
+
+

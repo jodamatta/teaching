@@ -37,11 +37,16 @@
                 <th>Nome</th>
                 <th>Quantidade</th>
                 <th>Valor</th>
+                <th>Editar</th>
                 <th><img src="https://cdn-icons-png.flaticon.com/512/126/126468.png" width="15px" height="15px"></th>
             </tr>
         </table>
     </section>
 
+    <script src="config.js"></script>
+    <script>
+    const API_BASE = (window.config && window.config.apiUrl) || 'http://127.0.0.1:5000';
+    </script>
     <script src="scripts.js"></script>
 </body>
 
